@@ -20,7 +20,8 @@ const VisionCapture = () => {
     glowIntensity: 0,
     showLabels: true,
     pulseAnimation: false,
-    detectionInterval: 100 // ms between detections
+    detectionInterval: 100, // ms between detections
+    fontSize: 14
   });
 
   const videoRef = useRef(null);
@@ -166,7 +167,7 @@ const VisionCapture = () => {
           const label = `${prediction.class}`;
           const confidence = `${Math.round(prediction.score * 100)}%`;
           
-          ctx.font = '14px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif';
+          ctx.font = `${detectionSettings.fontSize}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
           ctx.fillStyle = detectionSettings.lineColor;
           ctx.globalAlpha = 1;
           
@@ -174,14 +175,14 @@ const VisionCapture = () => {
           const labelWidth = ctx.measureText(label).width;
           const confWidth = ctx.measureText(confidence).width;
           const padding = 8;
-          const labelHeight = 20;
+          const labelHeight = detectionSettings.fontSize * 1.5;
           
           ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-          ctx.fillRect(x, y - labelHeight - 10, Math.max(labelWidth, confWidth) + padding * 2, labelHeight + 5);
+          ctx.fillRect(x, y - labelHeight - 10, Math.max(labelWidth, confWidth) + padding * 2, labelHeight + 8);
           
           ctx.fillStyle = detectionSettings.lineColor;
-          ctx.fillText(label, x + padding, y - 15);
-          ctx.font = '12px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif';
+          ctx.fillText(label, x + padding, y - labelHeight + detectionSettings.fontSize - 5);
+          ctx.font = `${detectionSettings.fontSize - 2}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
           ctx.globalAlpha = 0.8;
           ctx.fillText(confidence, x + padding, y - 2);
         }
@@ -390,7 +391,7 @@ const VisionCapture = () => {
             {showSettings && (
               <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 mb-4">
                 <h3 className="text-sm font-light text-white/70 mb-4">Detection Settings</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   {/* Detection Interval */}
                   <div>
                     <label className="text-xs text-white/50 block mb-2">Detection Speed</label>
@@ -446,6 +447,34 @@ const VisionCapture = () => {
                       onChange={(e) => setDetectionSettings({...detectionSettings, opacity: parseFloat(e.target.value)})}
                       className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
                     />
+                  </div>
+
+                  {/* Color Picker */}
+                  <div>
+                    <label className="text-xs text-white/50 block mb-2">Detection Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={detectionSettings.lineColor}
+                        onChange={(e) => setDetectionSettings({...detectionSettings, lineColor: e.target.value})}
+                        className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-white/20"
+                      />
+                      <span className="text-xs text-white/40">{detectionSettings.lineColor}</span>
+                    </div>
+                  </div>
+
+                  {/* Font Size */}
+                  <div>
+                    <label className="text-xs text-white/50 block mb-2">Font Size</label>
+                    <input
+                      type="range"
+                      min="10"
+                      max="24"
+                      value={detectionSettings.fontSize}
+                      onChange={(e) => setDetectionSettings({...detectionSettings, fontSize: parseInt(e.target.value)})}
+                      className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-xs text-white/40">{detectionSettings.fontSize}px</span>
                   </div>
 
                   {/* Toggle Switches */}
