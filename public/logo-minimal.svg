@@ -1,0 +1,16 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Black background circle -->
+  <circle cx="256" cy="256" r="256" fill="#000000"/>
+  
+  <!-- White eye shape -->
+  <path d="M256 156C156 156 72 256 72 256C72 256 156 356 256 356C356 356 440 256 440 256C440 256 356 156 256 156Z" stroke="#FFFFFF" stroke-width="32" fill="none"/>
+  
+  <!-- White iris circle -->
+  <circle cx="256" cy="256" r="80" stroke="#FFFFFF" stroke-width="32" fill="none"/>
+  
+  <!-- Green detection brackets -->
+  <path d="M120 120L120 180M120 120L180 120" stroke="#00FF41" stroke-width="24" stroke-linecap="round"/>
+  <path d="M392 120L392 180M392 120L332 120" stroke="#00FF41" stroke-width="24" stroke-linecap="round"/>
+  <path d="M120 392L120 332M120 392L180 392" stroke="#00FF41" stroke-width="24" stroke-linecap="round"/>
+  <path d="M392 392L392 332M392 392L332 392" stroke="#00FF41" stroke-width="24" stroke-linecap="round"/>
+</svg>
