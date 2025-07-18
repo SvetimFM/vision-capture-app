@@ -21,7 +21,7 @@ const VisionCapture = () => {
     showLabels: true,
     pulseAnimation: false,
     detectionInterval: 100, // ms between detections
-    fontSize: 14
+    fontSize: 18
   });
 
   const videoRef = useRef(null);
@@ -51,7 +51,8 @@ const VisionCapture = () => {
     try {
       await tf.ready();
       const loadedModel = await cocoSsd.load({
-        base: 'lite_mobilenet_v2'
+        base: 'lite_mobilenet_v2',
+        maxDetections: 40
       });
       setModel(loadedModel);
       setIsLoading(false);
@@ -200,43 +201,53 @@ const VisionCapture = () => {
         
         // Draw label with minimal design
         if (detectionSettings.showLabels) {
-          const label = `${prediction.class}`;
-          const confidence = `${Math.round(prediction.score * 100)}%`;
+          const label = `${prediction.class} ${Math.round(prediction.score * 100)}%`;
           
-          ctx.font = `${detectionSettings.fontSize}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
+          // Save context state for text drawing
+          ctx.save();
+          
+          // Reset transformation for text to prevent mirroring
+          if (facingMode === 'user') {
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+          }
+          
+          ctx.font = `bold ${detectionSettings.fontSize}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
           
           // Measure text dimensions
-          const labelWidth = ctx.measureText(label).width;
-          ctx.font = `${detectionSettings.fontSize - 2}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
-          const confWidth = ctx.measureText(confidence).width;
-          const padding = 12;
-          const labelHeight = detectionSettings.fontSize * 2.2;
-          const boxWidth = Math.max(labelWidth, confWidth) + padding * 2;
+          const textMetrics = ctx.measureText(label);
+          const padding = 16;
+          const labelHeight = detectionSettings.fontSize * 1.8;
+          const boxWidth = textMetrics.width + padding * 2;
+          
+          // Adjust position for mirrored camera
+          let labelX = scaledX;
+          if (facingMode === 'user') {
+            labelX = canvas.width - scaledX - scaledWidth;
+          }
           
           // Draw colored background rectangle with rounded corners
           const bgRadius = 6;
           ctx.fillStyle = boxColor;
           ctx.globalAlpha = 0.9;
           ctx.beginPath();
-          ctx.moveTo(scaledX + bgRadius, scaledY - labelHeight - 10);
-          ctx.lineTo(scaledX + boxWidth - bgRadius, scaledY - labelHeight - 10);
-          ctx.quadraticCurveTo(scaledX + boxWidth, scaledY - labelHeight - 10, scaledX + boxWidth, scaledY - labelHeight - 10 + bgRadius);
-          ctx.lineTo(scaledX + boxWidth, scaledY - 10 - bgRadius);
-          ctx.quadraticCurveTo(scaledX + boxWidth, scaledY - 10, scaledX + boxWidth - bgRadius, scaledY - 10);
-          ctx.lineTo(scaledX + bgRadius, scaledY - 10);
-          ctx.quadraticCurveTo(scaledX, scaledY - 10, scaledX, scaledY - 10 - bgRadius);
-          ctx.lineTo(scaledX, scaledY - labelHeight - 10 + bgRadius);
-          ctx.quadraticCurveTo(scaledX, scaledY - labelHeight - 10, scaledX + bgRadius, scaledY - labelHeight - 10);
+          ctx.moveTo(labelX + bgRadius, scaledY - labelHeight - 10);
+          ctx.lineTo(labelX + boxWidth - bgRadius, scaledY - labelHeight - 10);
+          ctx.quadraticCurveTo(labelX + boxWidth, scaledY - labelHeight - 10, labelX + boxWidth, scaledY - labelHeight - 10 + bgRadius);
+          ctx.lineTo(labelX + boxWidth, scaledY - 10 - bgRadius);
+          ctx.quadraticCurveTo(labelX + boxWidth, scaledY - 10, labelX + boxWidth - bgRadius, scaledY - 10);
+          ctx.lineTo(labelX + bgRadius, scaledY - 10);
+          ctx.quadraticCurveTo(labelX, scaledY - 10, labelX, scaledY - 10 - bgRadius);
+          ctx.lineTo(labelX, scaledY - labelHeight - 10 + bgRadius);
+          ctx.quadraticCurveTo(labelX, scaledY - labelHeight - 10, labelX + bgRadius, scaledY - labelHeight - 10);
           ctx.closePath();
           ctx.fill();
           
           // Draw text in contrasting color
           ctx.fillStyle = '#FFFFFF';
           ctx.globalAlpha = 1;
-          ctx.font = `bold ${detectionSettings.fontSize}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
-          ctx.fillText(label, scaledX + padding, scaledY - labelHeight + detectionSettings.fontSize - 5);
-          ctx.font = `${detectionSettings.fontSize - 2}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
-          ctx.fillText(confidence, scaledX + padding, scaledY - 12);
+          ctx.fillText(label, labelX + padding, scaledY - labelHeight / 2 - 10 + detectionSettings.fontSize / 3);
+          
+          ctx.restore();
         }
         
         ctx.restore();
@@ -520,8 +531,8 @@ const VisionCapture = () => {
                     <label className="text-xs text-white/50 block mb-2">Font Size</label>
                     <input
                       type="range"
-                      min="10"
-                      max="24"
+                      min="12"
+                      max="32"
                       value={detectionSettings.fontSize}
                       onChange={(e) => setDetectionSettings({...detectionSettings, fontSize: parseInt(e.target.value)})}
                       className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
