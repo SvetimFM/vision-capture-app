@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/vision-capture-app/static/css/main.e958ae73.css",
-    "main.js": "/vision-capture-app/static/js/main.312a20b7.js",
+    "main.js": "/vision-capture-app/static/js/main.dfedee4c.js",
     "static/js/453.4b6798f5.chunk.js": "/vision-capture-app/static/js/453.4b6798f5.chunk.js",
     "index.html": "/vision-capture-app/index.html",
     "main.e958ae73.css.map": "/vision-capture-app/static/css/main.e958ae73.css.map",
-    "main.312a20b7.js.map": "/vision-capture-app/static/js/main.312a20b7.js.map",
+    "main.dfedee4c.js.map": "/vision-capture-app/static/js/main.dfedee4c.js.map",
     "453.4b6798f5.chunk.js.map": "/vision-capture-app/static/js/453.4b6798f5.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e958ae73.css",
-    "static/js/main.312a20b7.js"
+    "static/js/main.dfedee4c.js"
   ]
 }

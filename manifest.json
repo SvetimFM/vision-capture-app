@@ -1,7 +1,7 @@
 {
   "short_name": "Vision",
-  "name": "Vision Capture - Neural Detection Engine",
-  "description": "AI-powered real-time object detection with smooth visual tracking",
+  "name": "Vision - Object Detection",
+  "description": "AI that knows what things are",
   "icons": [
     {
       "src": "favicon.ico",
