@@ -585,14 +585,38 @@ const VisionCapture = () => {
             />
             
             {!isDetecting && (
-              <div className="text-center z-10">
+              <div className="text-center z-10 max-w-2xl mx-auto px-6">
+                <div className="mb-12 space-y-4">
+                  <h2 className="text-3xl font-extralight text-white/90">Neural Vision Engine</h2>
+                  <p className="text-sm text-white/60 font-light leading-relaxed">
+                    Experience real-time AI object detection powered by TensorFlow.js. 
+                    Track up to 40 objects simultaneously with smooth visual transitions.
+                  </p>
+                  <div className="grid grid-cols-3 gap-4 mt-8 text-xs text-white/50">
+                    <div className="space-y-1">
+                      <div className="text-2xl mb-2">📸</div>
+                      <div className="font-medium text-white/70">Capture</div>
+                      <div>High-res photos with AI overlays</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-2xl mb-2">🎥</div>
+                      <div className="font-medium text-white/70">Record</div>
+                      <div>Videos with live detection</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-2xl mb-2">🎨</div>
+                      <div className="font-medium text-white/70">Customize</div>
+                      <div>Colors, confidence, and style</div>
+                    </div>
+                  </div>
+                </div>
                 <button
                   onClick={toggleDetection}
                   className="group relative px-12 py-5 bg-white/10 backdrop-blur-md text-white rounded-full font-light hover:bg-white/20 transition-all duration-300 border border-white/20"
                 >
                   <span className="relative z-10">Begin Analysis</span>
                 </button>
-                <p className="text-xs text-white/40 mt-4 font-light">Tap to start real-time object detection</p>
+                <p className="text-xs text-white/40 mt-4 font-light">Camera permission required</p>
               </div>
             )}
           </>
