@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
+import * as mobilenet from '@tensorflow-models/mobilenet';
 
 const VisionCapture = () => {
   const [model, setModel] = useState(null);
@@ -14,6 +15,7 @@ const VisionCapture = () => {
   const [detectionCount, setDetectionCount] = useState(0);
   const [capturedImage, setCapturedImage] = useState(null);
   const [showFlash, setShowFlash] = useState(false);
+  const [modelInfo, setModelInfo] = useState({ name: 'COCO-SSD', classes: 80 });
   const [detectionSettings, setDetectionSettings] = useState({
     lineWidth: 2,
     lineColor: '#FFFFFF',
@@ -550,7 +552,8 @@ const VisionCapture = () => {
               <div className="text-xs font-light text-white/50">
                 <div>{fps} FPS</div>
                 <div>{detectionCount} objects</div>
-                <div className="mt-1">🔒 Local only</div>
+                <div className="mt-1">{modelInfo.name}: {modelInfo.classes} classes</div>
+                <div>🔒 Local only</div>
               </div>
             </div>
           )}
@@ -595,7 +598,7 @@ const VisionCapture = () => {
                   <h2 className="text-3xl font-extralight text-white/90">See what your camera sees</h2>
                   <p className="text-sm text-white/60 font-light leading-relaxed">
                     Point at stuff. AI tells you what it is. 
-                    Works on 40 things at once. Pretty neat.
+                    Knows 80 types of things. Pretty neat.
                   </p>
                   <div className="grid grid-cols-3 gap-4 mt-8 text-xs text-white/50">
                     <div className="space-y-1">
@@ -623,6 +626,7 @@ const VisionCapture = () => {
                 </button>
                 <p className="text-xs text-white/40 mt-4 font-light">We'll need your camera</p>
                 <p className="text-xs text-white/30 mt-2 font-light">🔒 Everything stays on your device</p>
+                <p className="text-xs text-white/30 mt-1 font-light">Detects people, animals, vehicles, furniture & more</p>
               </div>
             )}
           </>
