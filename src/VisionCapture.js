@@ -550,6 +550,7 @@ const VisionCapture = () => {
               <div className="text-xs font-light text-white/50">
                 <div>{fps} FPS</div>
                 <div>{detectionCount} objects</div>
+                <div className="mt-1">🔒 Local only</div>
               </div>
             </div>
           )}
@@ -621,6 +622,7 @@ const VisionCapture = () => {
                   <span className="relative z-10">Let's go</span>
                 </button>
                 <p className="text-xs text-white/40 mt-4 font-light">We'll need your camera</p>
+                <p className="text-xs text-white/30 mt-2 font-light">🔒 Everything stays on your device</p>
               </div>
             )}
           </>

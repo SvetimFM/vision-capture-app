@@ -1,70 +1,73 @@
-# Getting Started with Create React App
+# Vision - Object Detection
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Point your camera at things. AI draws boxes around them. It's pretty fast.
 
-## Available Scripts
+**Live Demo**: [https://svetimfm.github.io/vision-capture-app/](https://svetimfm.github.io/vision-capture-app/)
 
-In the project directory, you can run:
+## What it does
 
-### `npm start`
+- Detects up to 40 objects in real-time
+- Takes photos with AI overlays
+- Records videos with live detection
+- Works entirely in your browser
+- **100% client-side** - no data leaves your device
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Privacy & Security
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Everything happens in your browser. We don't see your camera. We don't store your photos. We don't track what you detect. Your data never leaves your device.
 
-### `npm test`
+The app uses TensorFlow.js to run a neural network locally. No servers, no uploads, no privacy concerns.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Features
 
-### `npm run build`
+- 📸 **Snap** - High-res photos with detection overlays
+- 🎥 **Record** - Videos with live object tracking
+- 🎨 **Customize** - Colors, confidence thresholds, font sizes
+- 🔄 **Smooth** - Interpolated animations between frames
+- 📱 **Responsive** - Works on phones, tablets, desktops
+- 🔒 **Private** - All processing happens on your device
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Tech Stack
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- React
+- TensorFlow.js with COCO-SSD model
+- Tailwind CSS
+- WebRTC for camera access
+- Canvas API for overlays
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Local Development
 
-### `npm run eject`
+```bash
+# Clone the repo
+git clone https://github.com/SvetimFM/vision-capture-app.git
+cd vision-capture-app
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# Install dependencies
+npm install
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Start dev server
+npm start
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+# Build for production
+npm run build
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+# Deploy to GitHub Pages
+npm run deploy
+```
 
-## Learn More
+## Browser Support
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Works best in:
+- Chrome/Edge 80+
+- Safari 14+
+- Firefox 78+
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Needs camera permissions and a decent GPU for smooth performance.
 
-### Code Splitting
+## License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+MIT - Do whatever you want with it.
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Made with minimal fuss. [Report issues here](https://github.com/SvetimFM/vision-capture-app/issues).
