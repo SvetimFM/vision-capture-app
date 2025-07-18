@@ -205,24 +205,31 @@ const VisionCapture = () => {
               prevPred.bbox[3] + (bestMatch.bbox[3] - prevPred.bbox[3]) * easeProgress
             ];
             
-            interpolatedPredictions.push({
-              ...bestMatch,
-              bbox: interpBbox,
-              score: prevPred.score + (bestMatch.score - prevPred.score) * easeProgress
-            });
+            const interpScore = prevPred.score + (bestMatch.score - prevPred.score) * easeProgress;
+            if (interpScore >= detectionSettings.minScore) {
+              interpolatedPredictions.push({
+                ...bestMatch,
+                bbox: interpBbox,
+                score: interpScore
+              });
+            }
           } else {
-            // Fade out unmatched previous prediction
+            // Fade out unmatched previous prediction only if it still meets threshold
+            if (prevPred.score >= detectionSettings.minScore) {
+              interpolatedPredictions.push({
+                ...prevPred,
+                opacity: 1 - transitionProgress
+              });
+            }
+          }
+        } else {
+          // Fade out if no match found and still meets threshold
+          if (prevPred.score >= detectionSettings.minScore) {
             interpolatedPredictions.push({
               ...prevPred,
               opacity: 1 - transitionProgress
             });
           }
-        } else {
-          // Fade out if no match found
-          interpolatedPredictions.push({
-            ...prevPred,
-            opacity: 1 - transitionProgress
-          });
         }
       }
     });
@@ -230,10 +237,12 @@ const VisionCapture = () => {
     // Add remaining unmatched current predictions (new detections)
     currentByClass.forEach(classList => {
       classList.forEach(pred => {
-        interpolatedPredictions.push({
-          ...pred,
-          opacity: transitionProgress
-        });
+        if (pred.score >= detectionSettings.minScore) {
+          interpolatedPredictions.push({
+            ...pred,
+            opacity: transitionProgress
+          });
+        }
       });
     });
 
