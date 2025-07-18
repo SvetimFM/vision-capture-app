@@ -152,6 +152,13 @@ const VisionCapture = () => {
     canvas.width = displayWidth;
     canvas.height = displayHeight;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Apply mirroring for front camera
+    if (facingMode === 'user') {
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.translate(-canvas.width, 0);
+    }
 
     // Smooth transition logic
     transitionFrames.current++;
@@ -304,11 +311,6 @@ const VisionCapture = () => {
           // Save context state for text drawing
           ctx.save();
           
-          // Reset transformation for text to prevent mirroring
-          if (facingMode === 'user') {
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-          }
-          
           ctx.font = `bold ${detectionSettings.fontSize}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
           
           // Measure text dimensions
@@ -317,11 +319,8 @@ const VisionCapture = () => {
           const labelHeight = detectionSettings.fontSize * 1.8;
           const boxWidth = textMetrics.width + padding * 2;
           
-          // Adjust position for mirrored camera
-          let labelX = scaledX;
-          if (facingMode === 'user') {
-            labelX = canvas.width - scaledX - scaledWidth;
-          }
+          // Use the scaled position directly
+          const labelX = scaledX;
           
           // Draw colored background rectangle with rounded corners
           const bgRadius = 6;
@@ -351,8 +350,13 @@ const VisionCapture = () => {
         ctx.restore();
     });
 
+    // Restore canvas transformation if mirrored
+    if (facingMode === 'user') {
+      ctx.restore();
+    }
+
     animationIdRef.current = requestAnimationFrame(detect);
-  }, [model, isDetecting, detectionSettings]);
+  }, [model, isDetecting, detectionSettings, facingMode]);
 
   useEffect(() => {
     if (isDetecting) {
