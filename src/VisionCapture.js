@@ -155,35 +155,90 @@ const VisionCapture = () => {
 
     // Smooth transition logic
     transitionFrames.current++;
-    const transitionProgress = Math.min(transitionFrames.current / 10, 1); // 10 frames for transition
+    const transitionProgress = Math.min(transitionFrames.current / 15, 1); // 15 frames for smoother transition
+    const easeProgress = 0.5 - Math.cos(transitionProgress * Math.PI) / 2; // Ease in-out
     
-    // Draw predictions with smooth transitions
-    const allPredictions = new Map();
+    // Match predictions between frames for smooth interpolation
+    const interpolatedPredictions = [];
     
-    // Add previous predictions with reduced opacity
-    previousPredictions.current.forEach(pred => {
+    // Create a map of current predictions by class for matching
+    const currentByClass = new Map();
+    currentPredictions.current.forEach(pred => {
       if (pred.score >= detectionSettings.minScore) {
-        allPredictions.set(`${pred.class}_${Math.round(pred.bbox[0])}_${Math.round(pred.bbox[1])}`, {
-          ...pred,
-          opacity: 1 - transitionProgress
-        });
+        const classList = currentByClass.get(pred.class) || [];
+        classList.push(pred);
+        currentByClass.set(pred.class, classList);
       }
     });
     
-    // Add current predictions
-    currentPredictions.current.forEach(pred => {
-      if (pred.score >= detectionSettings.minScore) {
-        const key = `${pred.class}_${Math.round(pred.bbox[0])}_${Math.round(pred.bbox[1])}`;
-        allPredictions.set(key, {
+    // Match and interpolate previous predictions
+    previousPredictions.current.forEach(prevPred => {
+      if (prevPred.score >= detectionSettings.minScore) {
+        const classList = currentByClass.get(prevPred.class);
+        if (classList && classList.length > 0) {
+          // Find closest match by distance
+          let minDist = Infinity;
+          let bestMatch = null;
+          let bestIndex = -1;
+          
+          classList.forEach((currPred, idx) => {
+            const dist = Math.sqrt(
+              Math.pow(currPred.bbox[0] - prevPred.bbox[0], 2) + 
+              Math.pow(currPred.bbox[1] - prevPred.bbox[1], 2)
+            );
+            if (dist < minDist) {
+              minDist = dist;
+              bestMatch = currPred;
+              bestIndex = idx;
+            }
+          });
+          
+          if (bestMatch && minDist < 200) { // Only interpolate if reasonably close
+            // Remove matched prediction from list
+            classList.splice(bestIndex, 1);
+            
+            // Interpolate between previous and current position
+            const interpBbox = [
+              prevPred.bbox[0] + (bestMatch.bbox[0] - prevPred.bbox[0]) * easeProgress,
+              prevPred.bbox[1] + (bestMatch.bbox[1] - prevPred.bbox[1]) * easeProgress,
+              prevPred.bbox[2] + (bestMatch.bbox[2] - prevPred.bbox[2]) * easeProgress,
+              prevPred.bbox[3] + (bestMatch.bbox[3] - prevPred.bbox[3]) * easeProgress
+            ];
+            
+            interpolatedPredictions.push({
+              ...bestMatch,
+              bbox: interpBbox,
+              score: prevPred.score + (bestMatch.score - prevPred.score) * easeProgress
+            });
+          } else {
+            // Fade out unmatched previous prediction
+            interpolatedPredictions.push({
+              ...prevPred,
+              opacity: 1 - transitionProgress
+            });
+          }
+        } else {
+          // Fade out if no match found
+          interpolatedPredictions.push({
+            ...prevPred,
+            opacity: 1 - transitionProgress
+          });
+        }
+      }
+    });
+    
+    // Add remaining unmatched current predictions (new detections)
+    currentByClass.forEach(classList => {
+      classList.forEach(pred => {
+        interpolatedPredictions.push({
           ...pred,
           opacity: transitionProgress
         });
-      }
+      });
     });
 
     // Draw all predictions
-    allPredictions.forEach((prediction, index) => {
-      if (prediction.score >= detectionSettings.minScore) {
+    interpolatedPredictions.forEach((prediction, index) => {
         const [x, y, width, height] = prediction.bbox;
         
         // Transform coordinates to match display
@@ -285,7 +340,6 @@ const VisionCapture = () => {
         }
         
         ctx.restore();
-      }
     });
 
     animationIdRef.current = requestAnimationFrame(detect);
