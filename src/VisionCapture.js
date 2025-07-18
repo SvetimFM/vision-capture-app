@@ -12,6 +12,8 @@ const VisionCapture = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [fps, setFps] = useState(0);
   const [detectionCount, setDetectionCount] = useState(0);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [showFlash, setShowFlash] = useState(false);
   const [detectionSettings, setDetectionSettings] = useState({
     lineWidth: 2,
     lineColor: '#FFFFFF',
@@ -34,6 +36,8 @@ const VisionCapture = () => {
   const frameCount = useRef(0);
   const lastFpsTime = useRef(Date.now());
   const currentPredictions = useRef([]);
+  const previousPredictions = useRef([]);
+  const transitionFrames = useRef(0);
 
   useEffect(() => {
     loadModel();
@@ -112,7 +116,9 @@ const VisionCapture = () => {
     if (timeSinceLastDetection >= detectionSettings.detectionInterval) {
       try {
         const predictions = await model.detect(video);
+        previousPredictions.current = [...currentPredictions.current];
         currentPredictions.current = predictions;
+        transitionFrames.current = 0;
         lastDetectionTime.current = now;
         setDetectionCount(predictions.filter(p => p.score >= detectionSettings.minScore).length);
       } catch (error) {
@@ -147,8 +153,36 @@ const VisionCapture = () => {
     canvas.height = displayHeight;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw predictions from stored reference
-    currentPredictions.current.forEach((prediction, index) => {
+    // Smooth transition logic
+    transitionFrames.current++;
+    const transitionProgress = Math.min(transitionFrames.current / 10, 1); // 10 frames for transition
+    
+    // Draw predictions with smooth transitions
+    const allPredictions = new Map();
+    
+    // Add previous predictions with reduced opacity
+    previousPredictions.current.forEach(pred => {
+      if (pred.score >= detectionSettings.minScore) {
+        allPredictions.set(`${pred.class}_${Math.round(pred.bbox[0])}_${Math.round(pred.bbox[1])}`, {
+          ...pred,
+          opacity: 1 - transitionProgress
+        });
+      }
+    });
+    
+    // Add current predictions
+    currentPredictions.current.forEach(pred => {
+      if (pred.score >= detectionSettings.minScore) {
+        const key = `${pred.class}_${Math.round(pred.bbox[0])}_${Math.round(pred.bbox[1])}`;
+        allPredictions.set(key, {
+          ...pred,
+          opacity: transitionProgress
+        });
+      }
+    });
+
+    // Draw all predictions
+    allPredictions.forEach((prediction, index) => {
       if (prediction.score >= detectionSettings.minScore) {
         const [x, y, width, height] = prediction.bbox;
         
@@ -174,10 +208,10 @@ const VisionCapture = () => {
           ctx.shadowBlur = detectionSettings.glowIntensity;
         }
         
-        // Draw bounding box
+        // Draw bounding box with transition opacity
         ctx.strokeStyle = boxColor;
         ctx.lineWidth = detectionSettings.lineWidth;
-        ctx.globalAlpha = detectionSettings.opacity;
+        ctx.globalAlpha = detectionSettings.opacity * (prediction.opacity || 1);
         
         if (detectionSettings.pulseAnimation) {
           const pulse = Math.sin(Date.now() * 0.003 + index) * 0.3 + 0.7;
@@ -329,6 +363,111 @@ const VisionCapture = () => {
     }
   };
 
+  const capturePhoto = () => {
+    if (!canvasRef.current || !videoRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Draw video frame
+    ctx.drawImage(video, 0, 0);
+
+    // Create a second canvas for detections
+    const detectionCanvas = document.createElement('canvas');
+    const detectionCtx = detectionCanvas.getContext('2d');
+    detectionCanvas.width = video.videoWidth;
+    detectionCanvas.height = video.videoHeight;
+
+    // Draw current detections at full resolution
+    const scale = video.videoWidth / video.offsetWidth;
+    
+    currentPredictions.current.forEach((prediction) => {
+      if (prediction.score >= detectionSettings.minScore) {
+        const [x, y, width, height] = prediction.bbox;
+        
+        // Calculate color based on confidence
+        let boxColor = detectionSettings.lineColor;
+        if (detectionSettings.lineColor === '#FFFFFF') {
+          const hue = prediction.score * 120;
+          boxColor = `hsl(${hue}, 70%, 50%)`;
+        }
+        
+        detectionCtx.strokeStyle = boxColor;
+        detectionCtx.lineWidth = detectionSettings.lineWidth * scale;
+        detectionCtx.globalAlpha = detectionSettings.opacity;
+        
+        // Draw rounded rectangle
+        const radius = 8 * scale;
+        detectionCtx.beginPath();
+        detectionCtx.moveTo(x + radius, y);
+        detectionCtx.lineTo(x + width - radius, y);
+        detectionCtx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        detectionCtx.lineTo(x + width, y + height - radius);
+        detectionCtx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        detectionCtx.lineTo(x + radius, y + height);
+        detectionCtx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        detectionCtx.lineTo(x, y + radius);
+        detectionCtx.quadraticCurveTo(x, y, x + radius, y);
+        detectionCtx.closePath();
+        detectionCtx.stroke();
+        
+        // Draw label
+        if (detectionSettings.showLabels) {
+          const label = `${prediction.class} ${Math.round(prediction.score * 100)}%`;
+          
+          detectionCtx.font = `bold ${detectionSettings.fontSize * scale}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
+          const textMetrics = detectionCtx.measureText(label);
+          const padding = 16 * scale;
+          const labelHeight = detectionSettings.fontSize * 1.8 * scale;
+          const boxWidth = textMetrics.width + padding * 2;
+          
+          // Draw colored background
+          const bgRadius = 6 * scale;
+          detectionCtx.fillStyle = boxColor;
+          detectionCtx.globalAlpha = 0.9;
+          detectionCtx.beginPath();
+          detectionCtx.moveTo(x + bgRadius, y - labelHeight - 10 * scale);
+          detectionCtx.lineTo(x + boxWidth - bgRadius, y - labelHeight - 10 * scale);
+          detectionCtx.quadraticCurveTo(x + boxWidth, y - labelHeight - 10 * scale, x + boxWidth, y - labelHeight - 10 * scale + bgRadius);
+          detectionCtx.lineTo(x + boxWidth, y - 10 * scale - bgRadius);
+          detectionCtx.quadraticCurveTo(x + boxWidth, y - 10 * scale, x + boxWidth - bgRadius, y - 10 * scale);
+          detectionCtx.lineTo(x + bgRadius, y - 10 * scale);
+          detectionCtx.quadraticCurveTo(x, y - 10 * scale, x, y - 10 * scale - bgRadius);
+          detectionCtx.lineTo(x, y - labelHeight - 10 * scale + bgRadius);
+          detectionCtx.quadraticCurveTo(x, y - labelHeight - 10 * scale, x + bgRadius, y - labelHeight - 10 * scale);
+          detectionCtx.closePath();
+          detectionCtx.fill();
+          
+          // Draw text
+          detectionCtx.fillStyle = '#FFFFFF';
+          detectionCtx.globalAlpha = 1;
+          detectionCtx.fillText(label, x + padding, y - labelHeight / 2 - 10 * scale + detectionSettings.fontSize * scale / 3);
+        }
+      }
+    });
+
+    // Composite the detections onto the main canvas
+    ctx.drawImage(detectionCanvas, 0, 0);
+
+    // Flash animation
+    setShowFlash(true);
+    setTimeout(() => setShowFlash(false), 150);
+
+    // Download the image
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vision-capture-${Date.now()}.jpg`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 'image/jpeg', 0.95);
+  };
+
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
       {/* Minimal Header */}
@@ -422,11 +561,24 @@ const VisionCapture = () => {
                 Stop Analysis
               </button>
 
+              {/* Camera Button */}
+              <button
+                onClick={capturePhoto}
+                className="p-4 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 transition-all duration-300 border border-white/20"
+                title="Capture Photo"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <circle cx="12" cy="13" r="3" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} />
+                </svg>
+              </button>
+
               {/* Record Button */}
               {!isRecording ? (
                 <button
                   onClick={startRecording}
                   className="p-4 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 transition-all duration-300 border border-white/20 flex items-center gap-3"
+                  title="Start Recording"
                 >
                   <span className="w-3 h-3 bg-red-500 rounded-full"></span>
                 </button>
@@ -434,6 +586,7 @@ const VisionCapture = () => {
                 <button
                   onClick={stopRecording}
                   className="p-4 bg-red-500/80 backdrop-blur-md rounded-full hover:bg-red-600/80 transition-all duration-300 animate-pulse"
+                  title="Stop Recording"
                 >
                   <span className="w-4 h-4 bg-white rounded-sm"></span>
                 </button>
@@ -567,6 +720,11 @@ const VisionCapture = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Flash Animation */}
+      {showFlash && (
+        <div className="fixed inset-0 bg-white z-50 pointer-events-none animate-flash"></div>
       )}
 
       {/* Custom Styles */}
