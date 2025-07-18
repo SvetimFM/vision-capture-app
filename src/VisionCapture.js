@@ -32,6 +32,7 @@ const VisionCapture = () => {
   const lastDetectionTime = useRef(0);
   const frameCount = useRef(0);
   const lastFpsTime = useRef(Date.now());
+  const currentPredictions = useRef([]);
 
   useEffect(() => {
     loadModel();
@@ -105,11 +106,11 @@ const VisionCapture = () => {
 
     // Only run detection at specified interval
     const timeSinceLastDetection = now - lastDetectionTime.current;
-    let predictions = [];
     
     if (timeSinceLastDetection >= detectionSettings.detectionInterval) {
       try {
-        predictions = await model.detect(video);
+        const predictions = await model.detect(video);
+        currentPredictions.current = predictions;
         lastDetectionTime.current = now;
         setDetectionCount(predictions.filter(p => p.score >= detectionSettings.minScore).length);
       } catch (error) {
@@ -122,8 +123,8 @@ const VisionCapture = () => {
     canvas.height = video.videoHeight;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw predictions
-    predictions.forEach((prediction, index) => {
+    // Draw predictions from stored reference
+    currentPredictions.current.forEach((prediction, index) => {
       if (prediction.score >= detectionSettings.minScore) {
         const [x, y, width, height] = prediction.bbox;
         
