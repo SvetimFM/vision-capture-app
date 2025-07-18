@@ -538,7 +538,7 @@ const VisionCapture = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-start">
           <div>
             <h1 className="text-xl font-extralight tracking-wide text-white/90">Vision</h1>
-            <p className="text-xs font-light text-white/50 mt-1">Neural Detection Engine</p>
+            <p className="text-xs font-light text-white/50 mt-1">Object detection, but make it smooth</p>
           </div>
           
           {isDetecting && (
@@ -560,7 +560,7 @@ const VisionCapture = () => {
               <div className="absolute inset-0 border border-white/20 rounded-full"></div>
               <div className="absolute inset-0 border-t border-white rounded-full animate-spin"></div>
             </div>
-            <p className="text-sm font-light text-white/50">Initializing Neural Engine</p>
+            <p className="text-sm font-light text-white/50">Loading the robots</p>
           </div>
         ) : (
           <>
@@ -587,26 +587,26 @@ const VisionCapture = () => {
             {!isDetecting && (
               <div className="text-center z-10 max-w-2xl mx-auto px-6">
                 <div className="mb-12 space-y-4">
-                  <h2 className="text-3xl font-extralight text-white/90">Neural Vision Engine</h2>
+                  <h2 className="text-3xl font-extralight text-white/90">See what your camera sees</h2>
                   <p className="text-sm text-white/60 font-light leading-relaxed">
-                    Experience real-time AI object detection powered by TensorFlow.js. 
-                    Track up to 40 objects simultaneously with smooth visual transitions.
+                    Point at stuff. AI tells you what it is. 
+                    Works on 40 things at once. Pretty neat.
                   </p>
                   <div className="grid grid-cols-3 gap-4 mt-8 text-xs text-white/50">
                     <div className="space-y-1">
                       <div className="text-2xl mb-2">📸</div>
-                      <div className="font-medium text-white/70">Capture</div>
-                      <div>High-res photos with AI overlays</div>
+                      <div className="font-medium text-white/70">Snap</div>
+                      <div>Photos with boxes</div>
                     </div>
                     <div className="space-y-1">
                       <div className="text-2xl mb-2">🎥</div>
-                      <div className="font-medium text-white/70">Record</div>
-                      <div>Videos with live detection</div>
+                      <div className="font-medium text-white/70">Roll</div>
+                      <div>Videos that know things</div>
                     </div>
                     <div className="space-y-1">
                       <div className="text-2xl mb-2">🎨</div>
-                      <div className="font-medium text-white/70">Customize</div>
-                      <div>Colors, confidence, and style</div>
+                      <div className="font-medium text-white/70">Tweak</div>
+                      <div>Make it yours</div>
                     </div>
                   </div>
                 </div>
@@ -614,9 +614,9 @@ const VisionCapture = () => {
                   onClick={toggleDetection}
                   className="group relative px-12 py-5 bg-white/10 backdrop-blur-md text-white rounded-full font-light hover:bg-white/20 transition-all duration-300 border border-white/20"
                 >
-                  <span className="relative z-10">Begin Analysis</span>
+                  <span className="relative z-10">Let's go</span>
                 </button>
-                <p className="text-xs text-white/40 mt-4 font-light">Camera permission required</p>
+                <p className="text-xs text-white/40 mt-4 font-light">We'll need your camera</p>
               </div>
             )}
           </>
@@ -645,7 +645,7 @@ const VisionCapture = () => {
                 onClick={toggleDetection}
                 className="px-8 py-4 bg-white/10 backdrop-blur-md rounded-full font-light hover:bg-white/20 transition-all duration-300 border border-white/20"
               >
-                Stop Analysis
+                Stop
               </button>
 
               {/* Camera Button */}
