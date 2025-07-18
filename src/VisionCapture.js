@@ -119,15 +119,43 @@ const VisionCapture = () => {
       }
     }
 
-    // Always clear and redraw canvas for smooth animation
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Get actual display dimensions
+    const displayWidth = video.offsetWidth;
+    const displayHeight = video.offsetHeight;
+    const videoWidth = video.videoWidth;
+    const videoHeight = video.videoHeight;
+    
+    // Calculate scale and offset for object-cover behavior
+    const videoAspectRatio = videoWidth / videoHeight;
+    const displayAspectRatio = displayWidth / displayHeight;
+    
+    let scale, offsetX = 0, offsetY = 0;
+    
+    if (videoAspectRatio > displayAspectRatio) {
+      // Video is wider than display - crop sides
+      scale = displayHeight / videoHeight;
+      offsetX = (displayWidth - videoWidth * scale) / 2;
+    } else {
+      // Video is taller than display - crop top/bottom
+      scale = displayWidth / videoWidth;
+      offsetY = (displayHeight - videoHeight * scale) / 2;
+    }
+    
+    // Set canvas to match display size
+    canvas.width = displayWidth;
+    canvas.height = displayHeight;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw predictions from stored reference
     currentPredictions.current.forEach((prediction, index) => {
       if (prediction.score >= detectionSettings.minScore) {
         const [x, y, width, height] = prediction.bbox;
+        
+        // Transform coordinates to match display
+        const scaledX = x * scale + offsetX;
+        const scaledY = y * scale + offsetY;
+        const scaledWidth = width * scale;
+        const scaledHeight = height * scale;
         
         ctx.save();
         
@@ -158,15 +186,15 @@ const VisionCapture = () => {
         // Draw rounded rectangle
         const radius = 8;
         ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + width - radius, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        ctx.lineTo(x + radius, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.moveTo(scaledX + radius, scaledY);
+        ctx.lineTo(scaledX + scaledWidth - radius, scaledY);
+        ctx.quadraticCurveTo(scaledX + scaledWidth, scaledY, scaledX + scaledWidth, scaledY + radius);
+        ctx.lineTo(scaledX + scaledWidth, scaledY + scaledHeight - radius);
+        ctx.quadraticCurveTo(scaledX + scaledWidth, scaledY + scaledHeight, scaledX + scaledWidth - radius, scaledY + scaledHeight);
+        ctx.lineTo(scaledX + radius, scaledY + scaledHeight);
+        ctx.quadraticCurveTo(scaledX, scaledY + scaledHeight, scaledX, scaledY + scaledHeight - radius);
+        ctx.lineTo(scaledX, scaledY + radius);
+        ctx.quadraticCurveTo(scaledX, scaledY, scaledX + radius, scaledY);
         ctx.closePath();
         ctx.stroke();
         
@@ -190,15 +218,15 @@ const VisionCapture = () => {
           ctx.fillStyle = boxColor;
           ctx.globalAlpha = 0.9;
           ctx.beginPath();
-          ctx.moveTo(x + bgRadius, y - labelHeight - 10);
-          ctx.lineTo(x + boxWidth - bgRadius, y - labelHeight - 10);
-          ctx.quadraticCurveTo(x + boxWidth, y - labelHeight - 10, x + boxWidth, y - labelHeight - 10 + bgRadius);
-          ctx.lineTo(x + boxWidth, y - 10 - bgRadius);
-          ctx.quadraticCurveTo(x + boxWidth, y - 10, x + boxWidth - bgRadius, y - 10);
-          ctx.lineTo(x + bgRadius, y - 10);
-          ctx.quadraticCurveTo(x, y - 10, x, y - 10 - bgRadius);
-          ctx.lineTo(x, y - labelHeight - 10 + bgRadius);
-          ctx.quadraticCurveTo(x, y - labelHeight - 10, x + bgRadius, y - labelHeight - 10);
+          ctx.moveTo(scaledX + bgRadius, scaledY - labelHeight - 10);
+          ctx.lineTo(scaledX + boxWidth - bgRadius, scaledY - labelHeight - 10);
+          ctx.quadraticCurveTo(scaledX + boxWidth, scaledY - labelHeight - 10, scaledX + boxWidth, scaledY - labelHeight - 10 + bgRadius);
+          ctx.lineTo(scaledX + boxWidth, scaledY - 10 - bgRadius);
+          ctx.quadraticCurveTo(scaledX + boxWidth, scaledY - 10, scaledX + boxWidth - bgRadius, scaledY - 10);
+          ctx.lineTo(scaledX + bgRadius, scaledY - 10);
+          ctx.quadraticCurveTo(scaledX, scaledY - 10, scaledX, scaledY - 10 - bgRadius);
+          ctx.lineTo(scaledX, scaledY - labelHeight - 10 + bgRadius);
+          ctx.quadraticCurveTo(scaledX, scaledY - labelHeight - 10, scaledX + bgRadius, scaledY - labelHeight - 10);
           ctx.closePath();
           ctx.fill();
           
@@ -206,9 +234,9 @@ const VisionCapture = () => {
           ctx.fillStyle = '#FFFFFF';
           ctx.globalAlpha = 1;
           ctx.font = `bold ${detectionSettings.fontSize}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
-          ctx.fillText(label, x + padding, y - labelHeight + detectionSettings.fontSize - 5);
+          ctx.fillText(label, scaledX + padding, scaledY - labelHeight + detectionSettings.fontSize - 5);
           ctx.font = `${detectionSettings.fontSize - 2}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
-          ctx.fillText(confidence, x + padding, y - 12);
+          ctx.fillText(confidence, scaledX + padding, scaledY - 12);
         }
         
         ctx.restore();
