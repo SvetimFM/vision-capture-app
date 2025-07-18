@@ -131,14 +131,22 @@ const VisionCapture = () => {
         
         ctx.save();
         
+        // Calculate color based on confidence
+        let boxColor = detectionSettings.lineColor;
+        if (detectionSettings.lineColor === '#FFFFFF') {
+          // If white is selected, use hue based on confidence
+          const hue = prediction.score * 120; // 0 = red, 120 = green
+          boxColor = `hsl(${hue}, 70%, 50%)`;
+        }
+        
         // Apply glow effect
         if (detectionSettings.glowIntensity > 0) {
-          ctx.shadowColor = detectionSettings.lineColor;
+          ctx.shadowColor = boxColor;
           ctx.shadowBlur = detectionSettings.glowIntensity;
         }
         
         // Draw bounding box
-        ctx.strokeStyle = detectionSettings.lineColor;
+        ctx.strokeStyle = boxColor;
         ctx.lineWidth = detectionSettings.lineWidth;
         ctx.globalAlpha = detectionSettings.opacity;
         
@@ -168,23 +176,39 @@ const VisionCapture = () => {
           const confidence = `${Math.round(prediction.score * 100)}%`;
           
           ctx.font = `${detectionSettings.fontSize}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
-          ctx.fillStyle = detectionSettings.lineColor;
-          ctx.globalAlpha = 1;
           
-          // Background for label
+          // Measure text dimensions
           const labelWidth = ctx.measureText(label).width;
+          ctx.font = `${detectionSettings.fontSize - 2}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
           const confWidth = ctx.measureText(confidence).width;
-          const padding = 8;
-          const labelHeight = detectionSettings.fontSize * 1.5;
+          const padding = 12;
+          const labelHeight = detectionSettings.fontSize * 2.2;
+          const boxWidth = Math.max(labelWidth, confWidth) + padding * 2;
           
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-          ctx.fillRect(x, y - labelHeight - 10, Math.max(labelWidth, confWidth) + padding * 2, labelHeight + 8);
+          // Draw colored background rectangle with rounded corners
+          const bgRadius = 6;
+          ctx.fillStyle = boxColor;
+          ctx.globalAlpha = 0.9;
+          ctx.beginPath();
+          ctx.moveTo(x + bgRadius, y - labelHeight - 10);
+          ctx.lineTo(x + boxWidth - bgRadius, y - labelHeight - 10);
+          ctx.quadraticCurveTo(x + boxWidth, y - labelHeight - 10, x + boxWidth, y - labelHeight - 10 + bgRadius);
+          ctx.lineTo(x + boxWidth, y - 10 - bgRadius);
+          ctx.quadraticCurveTo(x + boxWidth, y - 10, x + boxWidth - bgRadius, y - 10);
+          ctx.lineTo(x + bgRadius, y - 10);
+          ctx.quadraticCurveTo(x, y - 10, x, y - 10 - bgRadius);
+          ctx.lineTo(x, y - labelHeight - 10 + bgRadius);
+          ctx.quadraticCurveTo(x, y - labelHeight - 10, x + bgRadius, y - labelHeight - 10);
+          ctx.closePath();
+          ctx.fill();
           
-          ctx.fillStyle = detectionSettings.lineColor;
+          // Draw text in contrasting color
+          ctx.fillStyle = '#FFFFFF';
+          ctx.globalAlpha = 1;
+          ctx.font = `bold ${detectionSettings.fontSize}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
           ctx.fillText(label, x + padding, y - labelHeight + detectionSettings.fontSize - 5);
           ctx.font = `${detectionSettings.fontSize - 2}px -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif`;
-          ctx.globalAlpha = 0.8;
-          ctx.fillText(confidence, x + padding, y - 2);
+          ctx.fillText(confidence, x + padding, y - 12);
         }
         
         ctx.restore();
